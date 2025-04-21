@@ -56,19 +56,6 @@ if game.PlaceId == 606849621 then
         speedEnabled = state
     end)
 
-    local maxFallSpeed = -50
-
-    local FallSpeedSlider = Tabs.Player:AddSlider("FallSpeedLimit", {
-        Title = "Fall Speed Limit",
-        Default = -50,
-        Min = -150,
-        Max = -10,
-        Rounding = 1,
-        Callback = function(value)
-            maxFallSpeed = value
-        end
-    })
-
     local infJumpEnabled = false
 
     local InfJumpToggle = Tabs.Player:AddToggle("InfJumpToggle", {
