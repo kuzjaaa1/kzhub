@@ -1,0 +1,135 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+if game.PlaceId == 606849621 then
+
+    local Window = Fluent:CreateWindow({
+        Title = "kzHub | " .. GameName,
+        SubTitle = "",
+        TabWidth = 160,
+        Size = UDim2.fromOffset(580, 460),
+        Acrylic = true,
+        Theme = "Dark",
+        MinimizeKey = Enum.KeyCode.LeftControl
+    })
+    
+    local Tabs = {
+        Main = Window:AddTab({ Title = "Main", Icon = "" }),
+        Player = Window:AddTab({ Title = "Player", Icon = "" }),
+    }
+
+    local noclipEnabled = false
+
+    local Toggle = Tabs.Player:AddToggle("NoclipToggle", {
+        Title = "Noclip",
+        Default = false
+    })
+
+    Toggle:OnChanged(function(value)
+        noclipEnabled = value
+    end)
+
+    local speedEnabled = false
+    local speedValue = 50
+
+    local SpeedSlider = Tabs.Player:AddSlider("SpeedSlider", {
+        Title = "Speed value",
+        Default = 50,
+        Min = 10,
+        Max = 200,
+        Rounding = 1,
+        Callback = function(value)
+            speedValue = value
+        end
+    })
+
+    local SpeedToggle = Tabs.Player:AddToggle("SpeedToggle", {
+        Title = "Speed",
+        Default = false
+    })
+
+    SpeedToggle:OnChanged(function(state)
+        speedEnabled = state
+    end)
+
+    local maxFallSpeed = -50
+
+    local FallSpeedSlider = Tabs.Player:AddSlider("FallSpeedLimit", {
+        Title = "Fall Speed Limit",
+        Default = -50,
+        Min = -150,
+        Max = -10,
+        Rounding = 1,
+        Callback = function(value)
+            maxFallSpeed = value
+        end
+    })
+
+    local infJumpEnabled = false
+
+    local InfJumpToggle = Tabs.Player:AddToggle("InfJumpToggle", {
+        Title = "Infinite Jump",
+        Default = false
+    })
+
+    InfJumpToggle:OnChanged(function(state)
+        infJumpEnabled = state
+    end)
+
+    UserInputService.JumpRequest:Connect(function()
+        if infJumpEnabled then
+            local character = Players.LocalPlayer.Character
+            if character and character:FindFirstChild("Humanoid") then
+                character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end)
+
+    RunService.RenderStepped:Connect(function()
+        local character = Players.LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") then
+            local hrp = character.HumanoidRootPart
+            local humanoid = character.Humanoid
+
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = not noclipEnabled
+                end
+            end
+
+            if speedEnabled then
+                local moveDir = humanoid.MoveDirection
+                if moveDir.Magnitude > 0 then
+                    hrp.AssemblyLinearVelocity = moveDir * speedValue + Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
+                end
+            end
+
+            if hrp.AssemblyLinearVelocity.Y < maxFallSpeed then
+                hrp.AssemblyLinearVelocity = Vector3.new(
+                    hrp.AssemblyLinearVelocity.X,
+                    maxFallSpeed,
+                    hrp.AssemblyLinearVelocity.Z
+                )
+            end
+        end
+    end)
+
+    local function removeAllDoors()
+        for _, obj in pairs(game:GetDescendants()) do
+            if obj.Name == "Door" or obj.Name == "SwingDoor" then
+                obj:Destroy()
+            end
+        end
+    end
+
+    Tabs.Main:AddButton({
+        Title = "Remove all doors",
+        Callback = function()
+            removeAllDoors()
+        end
+    })
+end
